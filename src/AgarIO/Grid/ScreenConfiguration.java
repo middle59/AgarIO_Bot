@@ -19,11 +19,11 @@ public class ScreenConfiguration {
 
     public static ScreenConfiguration getPhotoViewerConfig()
     {
-        return new ScreenConfiguration(128, 92, 1662, 838);
+        return new ScreenConfiguration(128, 92, 1662, 803);
     }
 
     public static ScreenConfiguration getAgarioWebConfig()
     {
-        return new ScreenConfiguration(0, 70, ScreenCap.getScreenMaxX(), ScreenCap.getScreenMaxY() - 110);
+        return new ScreenConfiguration(0, 70, ScreenCap.getScreenMaxX(), ScreenCap.getScreenMaxY() - 145);
     }
 }

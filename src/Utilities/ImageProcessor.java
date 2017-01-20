@@ -158,12 +158,19 @@ public class ImageProcessor
 
     public Color[][] filterRGBColors(Color[][] colorArray)
     {
+        int greyLowerBound = 160;
+        int greyUpperBound = 190;
+
         for(int i=0; i<colorArray.length; i++)
         {
             for(int j=0; j<colorArray[i].length; j++)
             {
                 Color curr = colorArray[i][j];
-                if(curr.getRed() == curr.getGreen() && curr.getRed() == curr.getBlue() && curr.getGreen() == curr.getBlue())
+                //Translate white to black (the center of the player)
+                //Translate gray with values between 165-175 to black
+                if((curr.getRed() > greyLowerBound && curr.getRed() < greyUpperBound) &&
+                        (curr.getGreen() > greyLowerBound && curr.getGreen() < greyUpperBound) &&
+                        (curr.getBlue() > greyLowerBound && curr.getBlue() < greyUpperBound))
                 {
                     colorArray[i][j] = new Color(0,0,0);
                 }else
