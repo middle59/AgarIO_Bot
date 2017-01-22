@@ -171,17 +171,20 @@ public class AbstractObject {
             int horizontalRadius1 = -1;
             int verticalRadius2 = -1;
 
+            //System.out.println("ApproxCenter::"+(leftX+128)+","+(rightX+128)+","+(bottomY+92)+","+(topY+92));
             if(leftX != -1 && rightX != -1)
             {
                 horizontalRadius1 = (rightX - leftX)/2;
-                coordinate.setX(leftX + horizontalRadius1);
             }
             if(bottomY != -1 && topY != -1)
             {
                 verticalRadius2 = (bottomY - topY)/2;
-                coordinate.setY(topY + horizontalRadius1);
             }
 
+            if(horizontalRadius1 != -1 && verticalRadius2 != -1)
+            {
+                coordinate = new Coordinate(leftX + horizontalRadius1, topY + verticalRadius2);
+            }
         }
 
         return coordinate;

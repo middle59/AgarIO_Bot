@@ -26,6 +26,8 @@ public class AgarIOManager implements ActionListener {
     public JButton stop;
     public JLabel statusLabel;
     public JLabel statusStringLabel;
+    public static ScreenConfiguration screenConfiguration;
+    public static double scale = 1; //move to screenConfiguration
 
     public AgarIOManager() {
         frame = new JFrame("Agar IO Bot Manager");
@@ -87,8 +89,8 @@ public class AgarIOManager implements ActionListener {
     public static void main(String[] args)
     {
         //Config for either parsing from windows photo viewer or from agar.io
-        //ScreenConfiguration screenConfiguration = ScreenConfiguration.getAgarioWebConfig();
-        ScreenConfiguration screenConfiguration = ScreenConfiguration.getPhotoViewerConfig();
+        //screenConfiguration = ScreenConfiguration.getAgarioWebConfig();
+       screenConfiguration = ScreenConfiguration.getPhotoViewerConfig();
 
         AgarIOManager agarIOManager = new AgarIOManager();
         agarIOManager.frame.setLocation(-1000, 500);
@@ -98,7 +100,6 @@ public class AgarIOManager implements ActionListener {
         //Logger.getFrame().setLocation(-1500, 300);
         Controller controller = new Controller(); //JavaFx
         ImageProcessor imageProcessor = new ImageProcessor();
-        double scale = 0.5;
 
         while(true) {
             if(agarIOManager.active) {
@@ -111,14 +112,14 @@ public class AgarIOManager implements ActionListener {
                 Color[][] downScale = imageProcessor.downScale(colorArray, ((int)(1/scale)) );
                 Color[][] colorMod = imageProcessor.filterRGBColors(downScale);
 
-                AgarIODataSnapshot agarIODataSnapshot = SnapshotFactory.analyzeImage(colorArray);
+                AgarIODataSnapshot agarIODataSnapshot = SnapshotFactory.analyzeImage(colorMod);
                 //System.out.println("Enemies Found: " + agarIODataSnapshot.enemyList.size());
                 Coordinate decision = SnapshotDecisionAid.makeDecision(agarIODataSnapshot);
                 //colorMod[decision.getX()][decision.getY()] = new Color(255,0,0);
 
-                //decision.setX((int)(decision.getX()/scale)+screenConfiguration.x);
-                //decision.setY((int)(decision.getY()/scale)+screenConfiguration.y);
-                //System.out.println("Moving to: "+decision);
+                decision.setX((int)(decision.getX()/scale)+screenConfiguration.x);
+                decision.setY((int)(decision.getY()/scale)+screenConfiguration.y);
+                System.out.println("Moving to: "+decision);
                 //controller.moveMouse(decision.getX(), decision.getY());
 
                 //displayUI.setPicturelabel(ImageProcessor.getImageFromArray(colorMod));

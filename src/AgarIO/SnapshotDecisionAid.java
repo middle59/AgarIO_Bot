@@ -313,7 +313,8 @@ public class SnapshotDecisionAid {
         //The front of the list is the highest priority food object
         //In this implementation it will be the closest 'safe' food object
         List<AbstractObject> foodPriorityList = new ArrayList<>();
-        int safeDistance = 55;
+        //int safeDistance = 55; //scale to image size
+        int safeDistance = 440;
         double totalEnemyDistanceInSafe = 0;
         double closestFood = -1;
         double closestEnemy = -1;
@@ -330,6 +331,7 @@ public class SnapshotDecisionAid {
             double distance = Math.sqrt(Math.pow( playerCenter.getX() - objectX, 2) + Math.pow(playerCenter.getY() - objectY, 2));
             object.distanceFromPlayer = distance;
             //System.out.println("Object Distance: "+distance);
+            //System.out.println("Object Center:"+ (object.approximateCenter().getX()+128)+","+(object.approximateCenter().getY()+92));
             comparisonIsFood = (object.approximateArea() < agarIODataSnapshot.player.approximateArea()) ? true : false;
             if (!comparisonIsFood)
             {
@@ -352,6 +354,7 @@ public class SnapshotDecisionAid {
                 //check if the food is nearby an enemy -- using safe distance
                 //this whole thing becomes n^2...
                 boolean foodIsSafe = true;
+               // System.out.println("Food Size: "+object.approximateArea());
 
                 for (AbstractObject comparisonObject : agarIODataSnapshot.enemyList) {
                     if(comparisonObject != object)
@@ -362,6 +365,7 @@ public class SnapshotDecisionAid {
                         int comparisonObjectY = comparisonObjectCenter.getY();
 
                         double comparisonDistance = Math.sqrt(Math.pow( objectX - comparisonObjectX, 2) + Math.pow(objectY - comparisonObjectY, 2));
+
                         comparisonIsFood = (comparisonObject.approximateArea() < agarIODataSnapshot.player.approximateArea()) ? true : false;
                         if (!comparisonIsFood && comparisonDistance < safeDistance) {
                             //unsafe food
@@ -385,6 +389,7 @@ public class SnapshotDecisionAid {
             }
         }
 
+        //System.out.println("Safe Food Counted: "+foodPriorityList.size());
         if(enemiesInSafe.size() > 0) {
             Coordinate influencedCoord = calculateEnemyInfluencedPoint(enemiesInSafe, totalEnemyDistanceInSafe);
             //The return here is just the offset from the player (again Y must be subtracted here instead of added)
@@ -392,6 +397,7 @@ public class SnapshotDecisionAid {
         }else {
             if(foodPriorityList.size() > 0) //if there is food to eat
             {
+                //System.out.println("Here");
                 Coordinate closestFoodCenter = foodPriorityList.get(0).approximateCenter();
                 coordinate.setX(closestFoodCenter.getX());
                 coordinate.setY(closestFoodCenter.getY());

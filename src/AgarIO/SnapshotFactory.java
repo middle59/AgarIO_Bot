@@ -1,7 +1,9 @@
 package AgarIO;
 
+import AgarIO.Grid.Coordinate;
 import AgarIO.Objects.AbstractObject;
 import Utilities.ImageProcessor;
+import Utilities.MathUtils;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
@@ -62,7 +64,9 @@ public class SnapshotFactory {
                     if(! masterHashSet.contains(i + "," + j))
                     {
                         AbstractObject object = discoverObject(colorArray, i, j, new AbstractObject());
-
+                        //System.out.println("Is Player: "+object.getIsPlayer());
+                        Coordinate coordinate = object.approximateCenter();
+                        //System.out.println("Object Approx. Center: "+(coordinate.getX()+128)+","+(coordinate.getY()+92));
                         if(object.getIsPlayer())
                         {
                             player = object;
@@ -79,6 +83,10 @@ public class SnapshotFactory {
 
     private static AbstractObject discoverObject(Color[][] colorArray, int x, int y, AbstractObject object)
     {
+        Coordinate screenCenter = new Coordinate(colorArray.length/2, colorArray[0].length/2);
+        //System.out.println("Screen Center: "+screenCenter.getX()+","+screenCenter.getY());
+        int playerPossibleDistance = ((int)(25/AgarIOManager.scale)); //this will have to scale with the screen size..
+
         //Error check bounds
         if(x >= 0 && x < colorArray.length && y >= 0 && y < colorArray[0].length) {
             Color curr = colorArray[x][y];
@@ -88,9 +96,15 @@ public class SnapshotFactory {
                     masterHashSet.add(x + "," + y);
                     object.addCoord(x + "," + y);
 
-                    //if this object is dead center then it is the player
-                    if (x == colorArray.length/2 && y == colorArray[0].length/2) {
-                        object.setIsPlayer(true);
+                    //Update: determine if this is the player by testing if any of the pixels are
+                    // so close to the screen center..
+                    double distance = MathUtils.getPointDistance(screenCenter.getX(), screenCenter.getY(), x, y);
+                    if (distance < playerPossibleDistance) {
+                        if(object.getIsPlayer()!=true) {
+                            //System.out.println("Pixel: " + x + "," + y + " is from center: " + distance);
+                            //System.out.println("Found a player object.");
+                            object.setIsPlayer(true);
+                        }
                     }
 
                     //NOTE - Where O is colorArray[x][y], we only have to discover X pixels due to the ordering of findObjects and this expansion

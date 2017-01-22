@@ -2,8 +2,28 @@
 # AgarIO TODO List
 ############################################################################
 
-- Upgrade UI to JavaFx                                          (IP)
-- Use a real image processor for scaling images better          (IP)
-- Separate imaging and decision processing to separate threads  (Not Started)
-- Create configurations for changing settings in UI             (Not Started)
-- Auto-Detect screen and browser settings                       (Not Started)
+###############
+# TODO
+###############
+
+- Allow for analyze image to calculate for the config scale
+- Separate imaging and decision processing to separate threads
+- Create configurations for changing settings in UI
+- Auto-Detect screen and browser settings
+
+###############
+# In Progress
+###############
+
+- Upgrade UI to JavaFx
+
+###############
+# Done
+###############
+
+(1-22-17)
+- Use a real image processor for scaling images better
+    *Image processor stayed the same -- instead the de-colorizing method
+     was greatly improved. Estimating an object's center is now far
+     more accurate. Object size is now based on an estimation of the area.
+     Finding the player has been revised.

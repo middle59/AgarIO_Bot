@@ -19,6 +19,17 @@ public class Coordinate {
     public void setX(int x) { this.x = x; }
     public void setY(int y) { this.y = y; }
 
+    /**
+     * Adjusts the current coordinates to the screenConfiguration
+     * Multiplies by the scale and then adds the offsets
+     * @param screenConfiguration
+     */
+    public void adjustToScreenConfiguration(ScreenConfiguration screenConfiguration)
+    {
+
+    }
+
+
     public String toString(){
         return "[X: " + x + ", Y: " + y + "]";
     }

@@ -4,6 +4,7 @@
 
 - Upgrade UI to JavaFx                                          (IP)
 - Use a real image processor for scaling images better          (IP)
+- Allow for analyze image to calculate for the config scale     (Not Started)
 - Separate imaging and decision processing to separate threads  (Not Started)
 - Create configurations for changing settings in UI             (Not Started)
 - Auto-Detect screen and browser settings                       (Not Started)
