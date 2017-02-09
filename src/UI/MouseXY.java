@@ -27,7 +27,7 @@ public class MouseXY {
     private Component component;
     private JLabel xPosLabel, yPosLabel, rValLabel, gValLabel, bValLabel;
 
-    //AgarIO.Controller
+    //AgarIO.AgarIOController
     private static boolean pollMousePos = true;
     private Timer timer;
     private Set<MouseMotionListener> mouseMotionListeners;

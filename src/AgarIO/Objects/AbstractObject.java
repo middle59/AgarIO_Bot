@@ -171,7 +171,7 @@ public class AbstractObject {
             int horizontalRadius1 = -1;
             int verticalRadius2 = -1;
 
-            //System.out.println("ApproxCenter::"+(leftX+128)+","+(rightX+128)+","+(bottomY+92)+","+(topY+92));
+            //System.out.println("ApproxCenter::"+(leftX)+","+(rightX)+","+(bottomY)+","+(topY));
             if(leftX != -1 && rightX != -1)
             {
                 horizontalRadius1 = (rightX - leftX)/2;

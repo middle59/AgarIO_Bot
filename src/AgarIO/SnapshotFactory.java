@@ -52,13 +52,12 @@ public class SnapshotFactory {
     //Finds a player in an edge detector translated image
     private static void findObjects(Color[][] colorArray)
     {
-
         for(int i=0; i<colorArray.length; i++)
         {
             for(int j=0; j<colorArray[i].length; j++)
             {
                 Color curr = colorArray[i][j];
-                if(curr.getRed() == 0 && curr.getGreen() == 0 && curr.getBlue() == 0)
+                if(curr.getRed() != 255 && curr.getGreen() != 255 && curr.getBlue() != 255)
                 {
                     //if this is a new object undiscovered yet
                     if(! masterHashSet.contains(i + "," + j))
@@ -66,6 +65,7 @@ public class SnapshotFactory {
                         AbstractObject object = discoverObject(colorArray, i, j, new AbstractObject());
                         //System.out.println("Is Player: "+object.getIsPlayer());
                         Coordinate coordinate = object.approximateCenter();
+                        //System.out.println("Object Approx. Center: "+((coordinate.getX()*4)+128)+","+((coordinate.getY()*4)+92));
                         //System.out.println("Object Approx. Center: "+(coordinate.getX()+128)+","+(coordinate.getY()+92));
                         if(object.getIsPlayer())
                         {
@@ -84,13 +84,14 @@ public class SnapshotFactory {
     private static AbstractObject discoverObject(Color[][] colorArray, int x, int y, AbstractObject object)
     {
         Coordinate screenCenter = new Coordinate(colorArray.length/2, colorArray[0].length/2);
-        //System.out.println("Screen Center: "+screenCenter.getX()+","+screenCenter.getY());
-        int playerPossibleDistance = ((int)(25/AgarIOManager.scale)); //this will have to scale with the screen size..
+
+        // Scale with image size ~ 4% of image width
+        int playerPossibleDistance = ((int)(colorArray.length * 0.04));
 
         //Error check bounds
         if(x >= 0 && x < colorArray.length && y >= 0 && y < colorArray[0].length) {
             Color curr = colorArray[x][y];
-            if (curr.getRed() == 0 && curr.getGreen() == 0 && curr.getBlue() == 0) {
+            if (curr.getRed() != 255 && curr.getGreen() != 255 && curr.getBlue() != 255) {
                 if (!masterHashSet.contains(x + "," + y)) {
                     //System.out.println(masterHashSet.size());
                     masterHashSet.add(x + "," + y);
@@ -99,8 +100,12 @@ public class SnapshotFactory {
                     //Update: determine if this is the player by testing if any of the pixels are
                     // so close to the screen center..
                     double distance = MathUtils.getPointDistance(screenCenter.getX(), screenCenter.getY(), x, y);
+                    //System.out.println("Center: " + ((screenCenter.getX()*8)+128) + "," + ((screenCenter.getY()*8)+92));
+                    //System.out.println("Pixel: " + ((x*8)+128) + "," + ((y*8)+92) + " is from center: " + distance*8);
+
                     if (distance < playerPossibleDistance) {
                         if(object.getIsPlayer()!=true) {
+                            //System.out.println("DISCOVER: " + ((x / AgarIOManager.scale)+AgarIOManager.screenConfiguration.x) + "," + ((y / AgarIOManager.scale)+AgarIOManager.screenConfiguration.y));
                             //System.out.println("Pixel: " + x + "," + y + " is from center: " + distance);
                             //System.out.println("Found a player object.");
                             object.setIsPlayer(true);

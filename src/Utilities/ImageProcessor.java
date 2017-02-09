@@ -1,6 +1,7 @@
 package Utilities;
 
 import java.awt.*;
+import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 
 /**
@@ -28,6 +29,50 @@ public class ImageProcessor
         IMAGE_SCALE = 1;
     }
 
+    public void pixelCheck(Color[][] colorArray)
+    {
+        boolean err = false;
+
+        for(int i=0; i<colorArray.length; i++)
+        {
+            for(int j=0; j<colorArray[i].length; j++)
+            {
+                Color colorPointer = colorArray[i][j];
+                if ( colorPointer == null)
+                {
+                    System.err.println("Null color pointer found at: " + i + ", " + j);
+                    err = true;
+                }
+            }
+        }
+
+        if (!err)
+            System.out.println("Pixel Check OK.");
+    }
+
+    public void print(String s)
+    {
+        if(VERBOSE)
+            System.out.println(s);
+    }
+
+//  ##################
+//  ## STATIC CALLS ##
+//  ##################
+
+    public static Color[][] drawCircle(Color[][] colorArray, Point2D centerPoint, int radius, Color circleColor)
+    {
+        for(int i = 0; i < 360; i++)
+        {
+            int pointX = (int) ((radius * Math.cos(i)) + centerPoint.getX());
+            int pointY = (int) ((radius * Math.sin(i)) + centerPoint.getY());
+            if(pointX > 0 && pointX < colorArray.length && pointY > 0 && pointY < colorArray[0].length) {
+                colorArray[pointX][pointY] = circleColor;
+            }
+        }
+        return colorArray;
+    }
+
     /**
      * Down scale by downScaleRatio average colors in a sub-square
      * 1:ScreenSize/1
@@ -36,17 +81,17 @@ public class ImageProcessor
      * @param colorArray
      * @return
      */
-    public Color[][] downScale(Color[][] colorArray, int downScaleRatio)
+    public static Color[][] downScale(Color[][] colorArray, int downScaleRatio)
     {
         int pixelsHeight = colorArray[0].length;
         int pixelsWidth = colorArray.length;
 
-        IMAGE_SCALE = IMAGE_SCALE/downScaleRatio;
+        //IMAGE_SCALE = IMAGE_SCALE/downScaleRatio;
         int modifier = downScaleRatio;
 
         int scaledHeight = (int)pixelsHeight/modifier;
         int scaledWidth = (int)pixelsWidth/modifier;
-        print("Downscaling IMG to: " + scaledWidth + ", " +scaledHeight);
+        //print("Downscaling IMG to: " + scaledWidth + ", " +scaledHeight);
 
         Color[][] result = new Color[scaledWidth][scaledHeight];
         //Average every downScaleRatio pixels and insert to result
@@ -94,20 +139,20 @@ public class ImageProcessor
             x++;
         }
 
-        print(pixelsProcessed+" colors processed.");
+        //print(pixelsProcessed+" colors processed.");
         return result;
     }
 
-    public Color[][] upScale(Color[][] colorArray, int upScaleRatio)
+    public static Color[][] upScale(Color[][] colorArray, int upScaleRatio)
     {
         int pixelsHeight = colorArray[0].length;
         int pixelsWidth = colorArray.length;
-        IMAGE_SCALE = IMAGE_SCALE*upScaleRatio;
+        //IMAGE_SCALE = IMAGE_SCALE*upScaleRatio;
         int modifier = upScaleRatio;
 
         int scaledHeight = (int)pixelsHeight*modifier;
         int scaledWidth = (int)pixelsWidth*modifier;
-        print("Upscaling IMG to: " + scaledWidth + ", " +scaledHeight);
+        //print("Upscaling IMG to: " + scaledWidth + ", " +scaledHeight);
 
         Color[][] result = new Color[scaledWidth][scaledHeight];
         //Average every downScaleRatio pixels and insert to result
@@ -131,67 +176,36 @@ public class ImageProcessor
             }
         }
 
-        print(pixelsProcessed+" colors processed.");
+        //print(pixelsProcessed+" colors processed.");
         return result;
     }
 
-    public void pixelCheck(Color[][] colorArray)
-    {
-        boolean err = false;
-
-        for(int i=0; i<colorArray.length; i++)
-        {
-            for(int j=0; j<colorArray[i].length; j++)
-            {
-                Color colorPointer = colorArray[i][j];
-                if ( colorPointer == null)
-                {
-                    System.err.println("Null color pointer found at: " + i + ", " + j);
-                    err = true;
-                }
-            }
-        }
-
-        if (!err)
-            System.out.println("Pixel Check OK.");
-    }
-
-    public Color[][] filterRGBColors(Color[][] colorArray)
+    public static Color[][] filterRGBColors(Color[][] colorArray)
     {
         int greyLowerBound = 160;
         int greyUpperBound = 190;
 
-        for(int i=0; i<colorArray.length; i++)
+        for(int y=0; y<colorArray[0].length; y++)
         {
-            for(int j=0; j<colorArray[i].length; j++)
+            for(int x=0; x<colorArray.length; x++)
             {
-                Color curr = colorArray[i][j];
+                Color curr = colorArray[x][y];
                 //Translate white to black (the center of the player)
                 //Translate gray with values between 165-175 to black
                 if((curr.getRed() > greyLowerBound && curr.getRed() < greyUpperBound) &&
                         (curr.getGreen() > greyLowerBound && curr.getGreen() < greyUpperBound) &&
                         (curr.getBlue() > greyLowerBound && curr.getBlue() < greyUpperBound))
                 {
-                    colorArray[i][j] = new Color(0,0,0);
+                    colorArray[x][y] = new Color(0,0,0);
                 }else
                 {
-                    colorArray[i][j] = new Color(255,255,255);
+                    colorArray[x][y] = new Color(255,255,255);
                 }
             }
         }
 
         return colorArray;
     }
-
-    public void print(String s)
-    {
-        if(VERBOSE)
-            System.out.println(s);
-    }
-
-//  ##################
-//  ## STATIC CALLS ##
-//  ##################
 
     public static BufferedImage getImageFromArray(Color[][] colorArray)
     {

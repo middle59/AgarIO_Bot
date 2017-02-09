@@ -1,11 +1,8 @@
 package AgarIO;
 
-import AgarIO.Grid.Coordinate;
 import AgarIO.Grid.ScreenConfiguration;
 import UI.DisplayUI;
-import UI.Logger;
 import Utilities.ImageProcessor;
-import Utilities.ScreenCap;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,21 +10,27 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.image.BufferedImage;
 
 /**
  * Created by Mike on 9/27/2016.
  */
-public class AgarIOManager implements ActionListener {
+public class AgarIOManager implements ActionListener, KeyListener
+{
+    public static boolean ENABLE_DISPLAY;
 
     public JFrame frame;
     public JButton start;
-    public boolean active;
     public JButton stop;
     public JLabel statusLabel;
     public JLabel statusStringLabel;
+
+    private static DisplayUI displayUI;
+    private static AgarIOController agarIOController;
+    ImageProcessor imageProcessor;
+
+    public static boolean active;
     public static ScreenConfiguration screenConfiguration;
-    public static double scale = 1; //move to screenConfiguration
+    public static double scale = 0.125; //move to screenConfiguration
 
     public AgarIOManager() {
         frame = new JFrame("Agar IO Bot Manager");
@@ -40,6 +43,7 @@ public class AgarIOManager implements ActionListener {
         stop.setEnabled(false);
         statusLabel = new JLabel("Status: ");
         statusStringLabel = new JLabel("Inactive");
+        setActive(false);
 
         GridLayout experimentLayout = new GridLayout(2,4);
         frame.setLayout(experimentLayout);
@@ -55,24 +59,131 @@ public class AgarIOManager implements ActionListener {
         frame.add(stop);
         frame.add(new JLabel(""));
 
+        frame.addKeyListener(this);
 
         frame.setSize(300, 100);
         frame.setVisible(true);
+
+        frame.setFocusable(true);
+
+        frame.setLocation(-305, 254);
+
+        //Config for either parsing from windows photo viewer or from agar.io
+        //screenConfiguration = ScreenConfiguration.getAgarioWebConfig();
+        screenConfiguration = ScreenConfiguration.getPhotoViewerConfig();
+        agarIOController = AgarIOManager.getAgarIOController();
+        imageProcessor = new ImageProcessor();
+
+        AgarIOManager.ENABLE_DISPLAY = true;
+
+        if(ENABLE_DISPLAY) {
+            displayUI = AgarIOManager.getDisplayUI();
+            displayUI.setLocation(-305, 375);
+        }
+    }
+
+    public static DisplayUI getDisplayUI() {
+        if (displayUI == null) {
+            displayUI = new DisplayUI();
+        }
+        return displayUI;
+    }
+
+    public static AgarIOController getAgarIOController() {
+        if (agarIOController == null) {
+            agarIOController = new AgarIOController();
+        }
+        return agarIOController;
     }
 
     public void setActive(boolean enable)
     {
         if(enable)
         {
+            statusStringLabel.setText("Active");
+            statusStringLabel.setForeground(Color.GREEN);
+            statusStringLabel.repaint();
             active = true;
             start.setEnabled(false);
             stop.setEnabled(true);
         }else
         {
+            statusStringLabel.setText("Inactive");
+            statusStringLabel.setForeground(Color.RED);
+            statusStringLabel.repaint();
             active = false;
             start.setEnabled(true);
             stop.setEnabled(false);
+            frame.repaint();
         }
+    }
+
+    public void run()
+    {
+        try {
+            AgarIOProcessor.runImageHandling();
+        }catch (InterruptedException e)
+        {
+            e.printStackTrace();
+        }
+
+        //Logger.displayUI();
+        //Logger.getFrame().setLocation(-1500, 300);
+        /*
+        while(true) {
+            if(this.active) {
+                //the offsets are to cut off the top of the browser and the OS taskbar
+
+                RunTimer.startTimer();
+                BufferedImage screenCap = ScreenCap.getAreaScreenCap(screenConfiguration.x, screenConfiguration.y, screenConfiguration.width, screenConfiguration.height);
+                System.out.println("Cap Image: " + RunTimer.endTimer() + "ms");
+
+                RunTimer.startTimer();
+                Color[][] colorArray = ImageProcessor.loadBufferedImage(screenCap);
+                System.out.println("Load Image: " + RunTimer.endTimer() + "ms");
+
+                //Color modding before downscaling retains a much better image
+                RunTimer.startTimer();
+                Color[][] colorMod = ImageProcessor.filterRGBColors(colorArray);
+                System.out.println("ColorMod: " + RunTimer.endTimer() + "ms");
+
+                RunTimer.startTimer();
+                Color[][] downScale = imageProcessor.downScale(colorMod, ((int) (1 / scale)));
+                System.out.println("Downscale: " + RunTimer.endTimer() + "ms");
+
+                //RunTimer.startTimer();
+                AgarIODataSnapshot agarIODataSnapshot = SnapshotFactory.analyzeImage(downScale);
+                //System.out.println("Analyze: " + RunTimer.endTimer() + "ms");
+                //System.out.println("Enemies Found: " + agarIODataSnapshot.enemyList.size());
+
+                //RunTimer.startTimer();
+                Coordinate decision = SnapshotDecisionAid.makeDecision(agarIODataSnapshot);
+                //System.out.println("Decision: " + RunTimer.endTimer() + "ms\n");
+
+                //Draw the result if we need to
+                if(AgarIOManager.ENABLE_DISPLAY)
+                {
+                    downScale = imageProcessor.drawCircle(downScale, new Point(decision.getX(), decision.getY()), (int) (24 * scale), decision.getThreat().getThreatColor());
+                    displayUI.setPicturelabel(ImageProcessor.getImageFromArray(downScale));
+                }
+
+                decision.setX((int) (decision.getX() / scale) + screenConfiguration.x);
+                decision.setY((int) (decision.getY() / scale) + screenConfiguration.y);
+
+                //System.out.println("Moving to: "+decision);
+                //Point currentPoint = agarIOController.getCurrentMousePos();
+                //System.out.println("Current Position: "+ currentPoint.getX()+","+currentPoint.getY());
+                agarIOController.moveMouse(decision.getX(), decision.getY());
+                //System.out.println("Calculation time: " + RunTimer.endTimer() + "ms");
+
+            } else {
+                try {
+                    Thread.sleep(10);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }*/
     }
 
     @Override
@@ -86,50 +197,29 @@ public class AgarIOManager implements ActionListener {
         }
     }
 
+    @Override
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_CONTROL) {
+            if(active)
+            {
+                setActive(false);
+            }else
+            {
+                setActive(true);
+            }
+        }else if(e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+            System.exit(1);
+        }
+    }
+
+    @Override
+    public void keyTyped(KeyEvent e) {}
+    @Override
+    public void keyReleased(KeyEvent e) {}
+
     public static void main(String[] args)
     {
-        //Config for either parsing from windows photo viewer or from agar.io
-        //screenConfiguration = ScreenConfiguration.getAgarioWebConfig();
-       screenConfiguration = ScreenConfiguration.getPhotoViewerConfig();
-
         AgarIOManager agarIOManager = new AgarIOManager();
-        agarIOManager.frame.setLocation(-1000, 500);
-        //DisplayUI displayUI = new DisplayUI();
-        //displayUI.setLocation(-1000,300);
-        //Logger.displayUI();
-        //Logger.getFrame().setLocation(-1500, 300);
-        Controller controller = new Controller(); //JavaFx
-        ImageProcessor imageProcessor = new ImageProcessor();
-
-        while(true) {
-            if(agarIOManager.active) {
-                //the offsets are to cut off the top of the browser and the OS taskbar
-                BufferedImage screenCap = ScreenCap.getAreaScreenCap(screenConfiguration.x, screenConfiguration.y, screenConfiguration.width, screenConfiguration.height);
-                //BufferedImage scaledImage = imageProcessor.scale(screenCap, scale);
-                Color[][] colorArray = ImageProcessor.loadBufferedImage(screenCap);
-                //Color[][] colorArray = ImageProcessor.loadBufferedImage(scaledImage);
-
-                Color[][] downScale = imageProcessor.downScale(colorArray, ((int)(1/scale)) );
-                Color[][] colorMod = imageProcessor.filterRGBColors(downScale);
-
-                AgarIODataSnapshot agarIODataSnapshot = SnapshotFactory.analyzeImage(colorMod);
-                //System.out.println("Enemies Found: " + agarIODataSnapshot.enemyList.size());
-                Coordinate decision = SnapshotDecisionAid.makeDecision(agarIODataSnapshot);
-                //colorMod[decision.getX()][decision.getY()] = new Color(255,0,0);
-
-                decision.setX((int)(decision.getX()/scale)+screenConfiguration.x);
-                decision.setY((int)(decision.getY()/scale)+screenConfiguration.y);
-                System.out.println("Moving to: "+decision);
-                //controller.moveMouse(decision.getX(), decision.getY());
-
-                //displayUI.setPicturelabel(ImageProcessor.getImageFromArray(colorMod));
-            }
-
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }
+        agarIOManager.run();
     }
 }

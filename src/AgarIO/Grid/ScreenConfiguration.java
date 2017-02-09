@@ -7,6 +7,7 @@ import Utilities.ScreenCap;
  */
 public class ScreenConfiguration {
 
+    //x and y are offset values to the AgarIO window
     public int x,y,width,height;
 
     public ScreenConfiguration(int x, int y, int width, int height)
@@ -22,8 +23,5 @@ public class ScreenConfiguration {
         return new ScreenConfiguration(128, 92, 1662, 803);
     }
 
-    public static ScreenConfiguration getAgarioWebConfig()
-    {
-        return new ScreenConfiguration(0, 70, ScreenCap.getScreenMaxX(), ScreenCap.getScreenMaxY() - 145);
-    }
+    public static ScreenConfiguration getAgarioWebConfig() { return new ScreenConfiguration(0, 70, ScreenCap.getScreenMaxX(), ScreenCap.getScreenMaxY() - 180); }
 }

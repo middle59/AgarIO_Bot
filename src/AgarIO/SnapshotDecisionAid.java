@@ -1,9 +1,11 @@
 package AgarIO;
 
 import AgarIO.Grid.Coordinate;
+import AgarIO.Grid.Threat;
 import AgarIO.Objects.AbstractObject;
 import Utilities.MathUtils;
 
+import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
@@ -12,7 +14,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Uses a snapshot to make a decision for the Controller
+ * Uses a snapshot to make a decision for the AgarIOController
  * Created by Mike on 10/13/2016.
  */
 public class SnapshotDecisionAid {
@@ -70,8 +72,9 @@ public class SnapshotDecisionAid {
                 }
             }
         }
-        //System.out.println("Closest Distance was: " +closestDistance*8);
 
+        //System.out.println("Closest Distance was: " +closestDistance*2);
+        //System.out.println("Object Count: " +objCount);
         return coordinate;
     }
 
@@ -313,8 +316,9 @@ public class SnapshotDecisionAid {
         //The front of the list is the highest priority food object
         //In this implementation it will be the closest 'safe' food object
         List<AbstractObject> foodPriorityList = new ArrayList<>();
-        //int safeDistance = 55; //scale to image size
-        int safeDistance = 440;
+        // Scale with image size ~ 25% of image width
+        int safeDistance = (int) (rawImage.getWidth()*0.25);
+
         double totalEnemyDistanceInSafe = 0;
         double closestFood = -1;
         double closestEnemy = -1;
@@ -323,15 +327,21 @@ public class SnapshotDecisionAid {
 
         for (AbstractObject object : agarIODataSnapshot.enemyList)
         {
-            Coordinate objectCenter = object.approximateClosest(playerCenter);
+            Coordinate objectCenter = object.approximateCenter();
+            Coordinate objectClosest = object.approximateClosest(playerCenter);
 
-            int objectX = objectCenter.getX();
-            int objectY = objectCenter.getY();
+            int objectCenterX = objectCenter.getX();
+            int objectCenterY = objectCenter.getY();
+
+            int objectClosestX = objectClosest.getX();
+            int objectClosestY = objectClosest.getY();
+
             //double distance = MathUtils.getPointDistance(playerCenter.getX(), playerCenter.getY(), objectX, objectY);
-            double distance = Math.sqrt(Math.pow( playerCenter.getX() - objectX, 2) + Math.pow(playerCenter.getY() - objectY, 2));
+            double distance = Math.sqrt(Math.pow( playerCenter.getX() - objectClosestX, 2) + Math.pow(playerCenter.getY() - objectClosestY, 2));
             object.distanceFromPlayer = distance;
             //System.out.println("Object Distance: "+distance);
             //System.out.println("Object Center:"+ (object.approximateCenter().getX()+128)+","+(object.approximateCenter().getY()+92));
+            //System.out.println("Object Center:"+ ((object.approximateCenter().getX()*4)+128)+","+((object.approximateCenter().getY()*4)+92));
             comparisonIsFood = (object.approximateArea() < agarIODataSnapshot.player.approximateArea()) ? true : false;
             if (!comparisonIsFood)
             {
@@ -340,13 +350,16 @@ public class SnapshotDecisionAid {
                     totalEnemyDistanceInSafe += distance;
                     //huge work around here.. normal y increases as you go north but going north of the player decreases the Y value..
                     //we swap the player Y and the object Y to resolve this
-                    object.angleTowardsPlayer = MathUtils.getPointAngle(playerCenter.getX(), objectY, objectX, playerCenter.getY());
+                    //System.out.println("Player: " + ((coordinate.getX() / AgarIOManager.scale)+AgarIOManager.screenConfiguration.x) + "," + ((coordinate.getY() / AgarIOManager.scale)+AgarIOManager.screenConfiguration.y));
+                    //System.out.println("Pixel: " + ((objectCenterX / AgarIOManager.scale)+AgarIOManager.screenConfiguration.x) + "," + ((objectCenterY / AgarIOManager.scale)+AgarIOManager.screenConfiguration.y));
+                    object.angleTowardsPlayer = MathUtils.getPointAngle(playerCenter.getX(), objectCenterY, objectCenterX, playerCenter.getY());
+                    //System.out.println("Enemies Angle To Player: " + object.angleTowardsPlayer);
                     enemiesInSafe.add(object);
 
                     if (closestEnemy == -1 || distance < closestEnemy) {
                         closestEnemy = distance;
-                        enemyCoord.setX(objectCenter.getX());
-                        enemyCoord.setY(objectCenter.getY());
+                        enemyCoord.setX(objectClosest.getX());
+                        enemyCoord.setY(objectClosest.getY());
                     }
                 }
             }else //Is Food
@@ -364,7 +377,7 @@ public class SnapshotDecisionAid {
                         int comparisonObjectX = comparisonObjectCenter.getX();
                         int comparisonObjectY = comparisonObjectCenter.getY();
 
-                        double comparisonDistance = Math.sqrt(Math.pow( objectX - comparisonObjectX, 2) + Math.pow(objectY - comparisonObjectY, 2));
+                        double comparisonDistance = Math.sqrt(Math.pow( objectClosestX - comparisonObjectX, 2) + Math.pow(objectClosestY - comparisonObjectY, 2));
 
                         comparisonIsFood = (comparisonObject.approximateArea() < agarIODataSnapshot.player.approximateArea()) ? true : false;
                         if (!comparisonIsFood && comparisonDistance < safeDistance) {
@@ -391,9 +404,43 @@ public class SnapshotDecisionAid {
 
         //System.out.println("Safe Food Counted: "+foodPriorityList.size());
         if(enemiesInSafe.size() > 0) {
-            Coordinate influencedCoord = calculateEnemyInfluencedPoint(enemiesInSafe, totalEnemyDistanceInSafe);
-            //The return here is just the offset from the player (again Y must be subtracted here instead of added)
+            int enemyCount = enemiesInSafe.size();
+            //System.out.println("Enemies in Safe Space: " + enemyCount);
+            //Basically we sum up the angles from the player to the object and weigh them based on how close they are to the player
+            //Closer objects are weighed more heavily
+            double totalAngleInfluence = 0;
+
+            //TODO: this algo needs to be ordered better with the enemyCount check
+            for (AbstractObject enemy : enemiesInSafe)
+            {
+                if(enemy.distanceFromPlayer != -1 && enemy.angleTowardsPlayer != -1) {
+                    //System.out.println("Object Distance: "+enemy.distanceFromPlayer+", Total Distances: "+totalEnemyDistanceFromPlayer);
+                    double percentInfluence = 1 - (enemy.distanceFromPlayer / totalEnemyDistanceInSafe);
+                    //Anthony Damato's Contribution
+                    percentInfluence = percentInfluence/(enemyCount-1);
+
+                    if(enemyCount == 1)
+                    {
+                        percentInfluence = 1; //normally if there is only 1 enemy then the above calculation will be 0 but will be the only influence
+                    }
+                    //System.out.println("Enemies Angle To Player: " + enemy.angleTowardsPlayer + " @ " + percentInfluence+"%");
+                    totalAngleInfluence += enemy.angleTowardsPlayer * percentInfluence;
+                } else
+                {
+                    //if we couldn't calculate because something wasn't set right, don't include it
+                    enemyCount--;
+                }
+            }
+            //System.out.println("Total Angle: "+ totalAngleInfluence);
+            double angleInfluence = (totalAngleInfluence + 180 ) % 360;
+            //System.out.println("Influenced Angle: " + angleInfluence);
+            //the distance here is a little arbitrary, as long as it is far enough out the player has time to travel and close enough to fit on the screen
+            Point2D.Double tempPoint = MathUtils.getPointFromAngleDistance(angleInfluence, (int) (rawImage.getWidth()*0.15));
+            //System.out.println("Point2D: "+tempPoint.getX()+","+tempPoint.getY());
+
+            Coordinate influencedCoord = new Coordinate((int)tempPoint.getX(), (int)tempPoint.getY());
             coordinate = new Coordinate(playerCenter.getX()+influencedCoord.getX(), playerCenter.getY()-influencedCoord.getY());
+            coordinate.setThreat(Threat.Threat_Val.HIGH);
         }else {
             if(foodPriorityList.size() > 0) //if there is food to eat
             {
@@ -401,59 +448,10 @@ public class SnapshotDecisionAid {
                 Coordinate closestFoodCenter = foodPriorityList.get(0).approximateCenter();
                 coordinate.setX(closestFoodCenter.getX());
                 coordinate.setY(closestFoodCenter.getY());
+                coordinate.setThreat(Threat.Threat_Val.NONE);
             } //otherwise its centered on the player..
         }
 
         return coordinate;
-    }
-
-    /**
-     * Takes a list of enemies and calculates a point which is safest to travel to based on
-     * the distance and angle of enemies in relation to the player
-     *
-     * -KLUDGE- for now i am just going to assume that angleTowardsPlayer in AbstractObject has already been calculated
-     * we will also be lazy and just pass the total distance from player
-     *
-     * No check for empty set
-     * @param enemyList
-     * @return
-     */
-    private static Coordinate calculateEnemyInfluencedPoint(HashSet<AbstractObject> enemyList, double totalEnemyDistanceFromPlayer)
-    {
-        int enemyCount = enemyList.size();
-        System.out.println("Enemies in Safe Space: " + enemyCount);
-        //Basically we sum up the angles from the player to the object and weigh them based on how close they are to the player
-        //Closer objects are weighed more heavily
-        double totalAngleInfluence = 0;
-
-        //TODO: this algo needs to be ordered better with the enemyCount check
-        for (AbstractObject enemy : enemyList)
-        {
-            if(enemy.distanceFromPlayer != -1 && enemy.angleTowardsPlayer != -1) {
-                //System.out.println("Object Distance: "+enemy.distanceFromPlayer+", Total Distances: "+totalEnemyDistanceFromPlayer);
-                double percentInfluence = 1 - (enemy.distanceFromPlayer / totalEnemyDistanceFromPlayer);
-                //Anthony Damato's Contribution
-                percentInfluence = percentInfluence/(enemyCount-1);
-
-                if(enemyCount == 1)
-                {
-                    percentInfluence = 1; //normally if there is only 1 enemy then the above calculation will be 0 but will be the only influence
-                }
-                //System.out.println("Enemies Angle To Player: " + enemy.angleTowardsPlayer + " @ " + percentInfluence+"%");
-                totalAngleInfluence += enemy.angleTowardsPlayer * percentInfluence;
-            } else
-            {
-                //if we couldn't calculate because something wasn't set right, don't include it
-                enemyCount--;
-            }
-        }
-        //System.out.println("Total Angle: "+ totalAngleInfluence);
-        double angleInfluence = (totalAngleInfluence + 180 ) % 360;
-        //System.out.println("Influenced Angle: " + angleInfluence);
-        //the distance here is a little arbitrary, as long as it is far enough out the player has time to travel and close enough to fit on the screen
-        Point2D.Double tempPoint = MathUtils.getPointFromAngleDistance(angleInfluence, 40);
-        //System.out.println("Point2D: "+tempPoint.getX()+","+tempPoint.getY());
-
-        return new Coordinate((int)tempPoint.getX(), (int)tempPoint.getY());
     }
 }
