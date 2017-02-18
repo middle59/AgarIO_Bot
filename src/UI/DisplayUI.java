@@ -21,7 +21,7 @@ public class DisplayUI extends JFrame implements Runnable {
     {
         super("FPS: ");
 
-        setSize( 150, 100 );
+        setSize( 250, 150 );
         setDefaultCloseOperation( JFrame.EXIT_ON_CLOSE );
 
         setLayout( new FlowLayout() );

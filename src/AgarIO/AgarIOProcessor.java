@@ -44,8 +44,8 @@ public class AgarIOProcessor {
         loadAndProduce.start();
         filterAndConsume.start();
 
-        loadAndProduce.join();
-        filterAndConsume.join();
+        //loadAndProduce.join();
+        //filterAndConsume.join();
     }
 
     public static class PCWorker
