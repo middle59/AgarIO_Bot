@@ -1,6 +1,7 @@
 package AgarIO;
 
 import AgarIO.Grid.ScreenConfiguration;
+import AgarIO.JavaFX.MainView;
 import UI.DisplayUI;
 import Utilities.ImageProcessor;
 import javafx.application.Application;
@@ -19,6 +20,7 @@ public class AgarIOManager
     private static DisplayUI displayUI;
     private static AgarIOController agarIOController;
     private static MainView mainView;
+    private static SnapshotDecisionAid agarIODecisionAid;
     ImageProcessor imageProcessor;
 
     public static boolean active;
@@ -54,6 +56,13 @@ public class AgarIOManager
             agarIOController = new AgarIOController();
         }
         return agarIOController;
+    }
+
+    public static SnapshotDecisionAid getSnapshotDecisionAid() {
+        if (agarIODecisionAid == null) {
+            agarIODecisionAid = new SnapshotDecisionAid();
+        }
+        return agarIODecisionAid;
     }
 
     public static void showDisplayCheck()

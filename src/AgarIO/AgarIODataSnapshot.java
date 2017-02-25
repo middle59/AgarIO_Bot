@@ -11,10 +11,10 @@ import java.util.Date;
  */
 public class AgarIODataSnapshot {
 
-    BufferedImage rawImage;
-    AbstractObject player;
-    ArrayList<AbstractObject> enemyList;
-    Date timestamp;
+    public BufferedImage rawImage;
+    public AbstractObject player;
+    public ArrayList<AbstractObject> enemyList;
+    public Date timestamp;
 
     public AgarIODataSnapshot(){}
 

@@ -6,22 +6,30 @@
 # TODO
 ###############
 
-- Allow for analyze image to calculate for the config scale
-    -The calculations are loosing precision when the image is being scaled down because
+- The calculations are loosing precision when the image is being scaled down because
     they are done as integers. ~object centers become off by a factor of the down scale -- 25% image causes the center to be off by ~2 pixels
-- Separate imaging and decision processing to separate threads
-- Create configurations for changing settings in UI
 - Auto-Detect screen and browser settings
+- Allow settings to be changed for different AI implementations. Probably split these into a class implementing an abstract AI class.
 
 ###############
 # In Progress
 ###############
 
-- Upgrade UI to JavaFx
 
 ###############
 # Done
 ###############
+
+(2-18-17)
+- Upgrade UI to JavaFx
+- Updated the display to show where the current decided movement is.
+- Create configurations for changing settings in UI
+
+(2-4-17)
+- Allow for analyze image to calculate for the config scale
+    *Takes into account given image size, not the scale number progamatically stored.
+- Separate imaging and decision processing to separate threads
+    *Split into Producer/Consumer Model using two threads.
 
 (1-22-17)
 - Use a real image processor for scaling images better

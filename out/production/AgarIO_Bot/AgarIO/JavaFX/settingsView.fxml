@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import java.lang.*?>
+<?import javafx.scene.layout.*?>
+
+<Pane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="336.0" prefWidth="245.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="AgarIO.JavaFX.SettingsController">
+   <children>
+      <Button fx:id="applyButton" layoutX="64.0" layoutY="279.0" mnemonicParsing="false" onAction="#handleApplyButton" text="Apply" />
+      <ChoiceBox fx:id="configurationBox" layoutX="12.0" layoutY="87.0" prefWidth="150.0" />
+      <CheckBox fx:id="enableDisplay" layoutX="14.0" layoutY="143.0" mnemonicParsing="false" text="Show Display" />
+      <Label layoutX="91.0" layoutY="14.0" text="Settings" underline="true">
+         <font>
+            <Font size="18.0" />
+         </font>
+      </Label>
+      <Label layoutX="14.0" layoutY="70.0" text="Configuration" />
+      <Button fx:id="closeButton" layoutX="140.0" layoutY="279.0" mnemonicParsing="false" onAction="#handleCloseButton" text="Close" />
+      <Button fx:id="aiSettingsButton" layoutX="14.0" layoutY="181.0" mnemonicParsing="false" prefHeight="25.0" prefWidth="99.0" onAction="#handleAISettings" text="AI Settings" />
+   </children>
+</Pane>

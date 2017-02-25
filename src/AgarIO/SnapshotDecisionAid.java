@@ -1,16 +1,15 @@
 package AgarIO;
 
+import AgarIO.AI.*;
 import AgarIO.Grid.Coordinate;
 import AgarIO.Grid.Threat;
 import AgarIO.Objects.AbstractObject;
 import Utilities.MathUtils;
 
-import java.awt.*;
 import java.awt.geom.Point2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -19,11 +18,26 @@ import java.util.List;
  */
 public class SnapshotDecisionAid {
 
-    public SnapshotDecisionAid(){}
+    public List<AbstractAI> aiList;
+    public AbstractAI activeAI;
 
-    public static Coordinate makeDecision(AgarIODataSnapshot agarIODataSnapshot)
+    // Manages the Different AIs
+    public SnapshotDecisionAid()
     {
-        return weightedAnglesSafeSpace(agarIODataSnapshot);
+        aiList = new ArrayList<>();
+        aiList.add(new ClosestFood_AI());
+        aiList.add(new RunAway_AI());
+        aiList.add(new DecideByClosest_AI());
+        aiList.add(new SafeSpaceSimple_AI());
+        aiList.add(new SafeSpaceWeighted_AI());
+
+        // The default value on startup
+        activeAI = aiList.get(4);
+    }
+
+    public Coordinate makeDecision(AgarIODataSnapshot agarIODataSnapshot)
+    {
+        return activeAI.makeDecision(agarIODataSnapshot);
     }
 
     /**

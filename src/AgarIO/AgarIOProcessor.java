@@ -111,7 +111,7 @@ public class AgarIOProcessor {
                         //System.out.println("Enemies Found: " + agarIODataSnapshot.enemyList.size());
 
                         //RunTimer.startTimer();
-                        Coordinate decision = SnapshotDecisionAid.makeDecision(agarIODataSnapshot);
+                        Coordinate decision = AgarIOManager.getSnapshotDecisionAid().makeDecision(agarIODataSnapshot);
                         //System.out.println("Decision: " + RunTimer.endTimer() + "ms\n");
 
                         //Draw the result if we need to
